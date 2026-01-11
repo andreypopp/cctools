@@ -46,3 +46,5 @@ Features:
 - Code references use the format `<file>:<start>-<end>:` - use `gF` to jump to the referenced location
 - In source files, use `gC` to jump to the claude comment for the code under cursor
 - Comments appear as virtual lines above the referenced code in source files, cleared on submit
+
+## ghreview neovim plugin
