@@ -3,7 +3,7 @@ local M = {}
 local BUFFER_NAME = "**claude-code**"
 local NS = vim.api.nvim_create_namespace("cctools-comment")
 
--- Track current comments: key = "filepath:line", value = {extmark_id, buf, comment}
+---@type table<string, {extmark_id: integer, buf: integer, comment: string}>
 local current_comments = {}
 
 local function clear_all_comments()
@@ -28,7 +28,10 @@ local function parse_references(buf)
       local abs_path = vim.fn.fnamemodify(filepath, ":p")
       local line_num = tonumber(start_line)
       local key = abs_path .. ":" .. line_num
-      local comment = vim.trim(table.concat(comment_lines, "\n"))
+      while #comment_lines > 0 and vim.trim(comment_lines[#comment_lines]) == "" do table.remove(comment_lines) end
+      while #comment_lines > 0 and vim.trim(comment_lines[1]) == "" do table.remove(comment_lines, 1) end
+      for i, l in ipairs(comment_lines) do comment_lines[i] = "┇ " .. l end
+      local comment = table.concat(comment_lines, "\n")
 
       refs[key] = {
         filepath = abs_path,
@@ -248,6 +251,55 @@ function M.submit()
     clear_all_comments()
     vim.api.nvim_buf_delete(buf, { force = true })
   end)
+end
+
+function M.goto_comment()
+  local claude_buf = vim.fn.bufnr(BUFFER_NAME)
+  if claude_buf == -1 then
+    vim.notify("no " .. BUFFER_NAME .. " buffer", vim.log.levels.WARN)
+    return
+  end
+
+  local current_file = vim.fn.expand("%:p")
+  local current_line = vim.fn.line(".")
+
+  local lines = vim.api.nvim_buf_get_lines(claude_buf, 0, -1, false)
+  local target_line_nr = nil
+
+  for i, line in ipairs(lines) do
+    local filepath, start_line, end_line = line:match("^(.+):(%d+)-(%d+):$")
+    if filepath then
+      local abs_path = vim.fn.fnamemodify(filepath, ":p")
+      local start_num = tonumber(start_line)
+      local end_num = tonumber(end_line)
+      if abs_path == current_file and current_line >= start_num and current_line <= end_num then
+        target_line_nr = i
+        break
+      end
+    end
+  end
+
+  if not target_line_nr then
+    vim.notify("no comment for this location", vim.log.levels.WARN)
+    return
+  end
+
+  -- Find window with claude buffer or open in current window
+  local claude_win = nil
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(win) == claude_buf then
+      claude_win = win
+      break
+    end
+  end
+
+  if claude_win then
+    vim.api.nvim_set_current_win(claude_win)
+  else
+    vim.cmd("buffer " .. claude_buf)
+  end
+
+  vim.api.nvim_win_set_cursor(0, { target_line_nr, 0 })
 end
 
 return M

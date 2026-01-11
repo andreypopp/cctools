@@ -24,3 +24,5 @@ vim.api.nvim_create_user_command("CCSubmit", function()
 end, {
   desc = "Submit **claude-code** buffer to Claude Code and delete it",
 })
+
+vim.keymap.set("n", "gC", ccsend.goto_comment, { desc = "Go to claude comment for code under cursor" })
