@@ -7,7 +7,7 @@ local function get_or_create_buffer()
   if buf == -1 then
     buf = vim.api.nvim_create_buf(true, true)
     vim.api.nvim_buf_set_name(buf, BUFFER_NAME)
-    vim.bo[buf].buftype = "nofile"
+    vim.bo[buf].buftype = "acwrite"
     vim.bo[buf].swapfile = false
     vim.bo[buf].filetype = "markdown"
     vim.keymap.set("n", "<leader><CR>", "<cmd>CCSubmit<CR>", { buffer = buf, desc = "Submit to Claude Code" })
@@ -50,6 +50,16 @@ local function build_prompt(prompt, range)
   end
 
   return full_prompt
+end
+
+local function buffer_has_content()
+  local buf = vim.fn.bufnr(BUFFER_NAME)
+  if buf == -1 then
+    return false
+  end
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local text = table.concat(lines, "\n")
+  return vim.trim(text) ~= ""
 end
 
 local function send_to_claude(text)
@@ -113,6 +123,7 @@ function M.add(prompt, opts)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end
 
+  vim.bo[buf].modified = true
   vim.notify("Added to " .. BUFFER_NAME, vim.log.levels.INFO)
 end
 
