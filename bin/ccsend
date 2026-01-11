@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# ccsend - Send a command to the Claude Code pane in current tmux session
+#
+# Usage:
+#   ccsend "your command here"
+#   echo "your command" | ccsend
+#
+
+set -eu
+
+# Get command from argument or stdin
+if [ $# -gt 0 ]; then
+    CMD="$*"
+else
+    CMD=$(cat)
+fi
+
+if [ -z "$CMD" ]; then
+    echo "Error: No command provided" >&2
+    echo "Usage: ccsend <command> or echo <command> | ccsend" >&2
+    exit 1
+fi
+
+# Check if we're in tmux
+if [ -z "${TMUX:-}" ]; then
+    echo "Error: Not running inside tmux" >&2
+    exit 1
+fi
+
+# Cache pane list (pid:pane_id per line) for current session
+PANE_LIST=$(tmux list-panes -s -F '#{pane_pid}:#{pane_id}')
+
+# Find pane ID for a given PID
+find_pane_for_pid() {
+    local search_pid=$1
+    echo "$PANE_LIST" | grep "^${search_pid}:" | cut -d: -f2 | head -1
+}
+
+# Find claude processes (try exact match first, then broader search)
+CLAUDE_PIDS=$(pgrep -x "claude" 2>/dev/null || pgrep -f "node.*claude" 2>/dev/null | head -5 || true)
+
+if [ -z "$CLAUDE_PIDS" ]; then
+    echo "Error: Claude Code is not running" >&2
+    exit 1
+fi
+
+# Walk up the process tree from each claude PID to find the tmux pane
+FOUND_PANES=""
+for claude_pid in $CLAUDE_PIDS; do
+    pid=$claude_pid
+    while [ -n "$pid" ] && [ "$pid" != "1" ]; do
+        result=$(find_pane_for_pid "$pid")
+        if [ -n "$result" ]; then
+            # Add to list if not already present
+            if ! echo "$FOUND_PANES" | grep -q "^${result}$"; then
+                FOUND_PANES="${FOUND_PANES}${FOUND_PANES:+$'\n'}${result}"
+            fi
+            break
+        fi
+        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    done
+done
+
+if [ -z "$FOUND_PANES" ]; then
+    echo "Error: Could not find Claude Code pane in current session" >&2
+    exit 1
+fi
+
+PANE_COUNT=$(echo "$FOUND_PANES" | wc -l | tr -d ' ')
+if [ "$PANE_COUNT" -gt 1 ]; then
+    echo "Error: Multiple Claude Code instances found in current session:" >&2
+    echo "$FOUND_PANES" | sed 's/^/  /' >&2
+    exit 1
+fi
+
+PANE_ID="$FOUND_PANES"
+
+# Send the command to the pane
+tmux send-keys -t "$PANE_ID" -l "$CMD"
+tmux send-keys -t "$PANE_ID" Enter

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec pnpx @anthropic-ai/claude-code --permission-mode acceptEdits --model opus "$@"
