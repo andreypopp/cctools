@@ -119,6 +119,8 @@ function M.add(prompt, opts)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, new_lines)
   else
     table.insert(lines, "")
+    table.insert(lines, "---")
+    table.insert(lines, "")
     vim.list_extend(lines, new_lines)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end
