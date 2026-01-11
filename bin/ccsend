@@ -17,14 +17,14 @@ else
 fi
 
 if [ -z "$CMD" ]; then
-    echo "Error: No command provided" >&2
+    echo "error: no command provided" >&2
     echo "Usage: ccsend <command> or echo <command> | ccsend" >&2
     exit 1
 fi
 
 # Check if we're in tmux
 if [ -z "${TMUX:-}" ]; then
-    echo "Error: Not running inside tmux" >&2
+    echo "error: not running inside tmux" >&2
     exit 1
 fi
 
@@ -41,7 +41,7 @@ find_pane_for_pid() {
 CLAUDE_PIDS=$(pgrep -x "claude" 2>/dev/null || pgrep -f "node.*claude" 2>/dev/null | head -5 || true)
 
 if [ -z "$CLAUDE_PIDS" ]; then
-    echo "Error: Claude Code is not running" >&2
+    echo "error: Claude Code is not running" >&2
     exit 1
 fi
 
@@ -63,14 +63,13 @@ for claude_pid in $CLAUDE_PIDS; do
 done
 
 if [ -z "$FOUND_PANES" ]; then
-    echo "Error: Could not find Claude Code pane in current session" >&2
+    echo "error: could not find Claude Code pane in current session" >&2
     exit 1
 fi
 
 PANE_COUNT=$(echo "$FOUND_PANES" | wc -l | tr -d ' ')
 if [ "$PANE_COUNT" -gt 1 ]; then
-    echo "Error: Multiple Claude Code instances found in current session:" >&2
-    echo "$FOUND_PANES" | sed 's/^/  /' >&2
+    echo "error: multiple Claude Code instances found in current session" >&2
     exit 1
 fi
 
