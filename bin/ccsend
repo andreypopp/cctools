@@ -38,7 +38,8 @@ find_pane_for_pid() {
 }
 
 # Find claude processes (try exact match first, then broader search)
-CLAUDE_PIDS=$(pgrep -x "claude" 2>/dev/null || pgrep -f "node.*claude" 2>/dev/null | head -5 || true)
+CLAUDE_PIDS=$(pgrep -x "claude" 2>/dev/null || pgrep -f "node.*claude" 2>/dev/null || true)
+CLAUDE_PIDS=$(echo "$CLAUDE_PIDS" | head -5)
 
 if [ -z "$CLAUDE_PIDS" ]; then
     echo "error: Claude Code is not running" >&2

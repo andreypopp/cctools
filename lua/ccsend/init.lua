@@ -18,7 +18,7 @@ end
 local function parse_references(buf)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   local refs = {}
-  local comment_lines = {}
+  local comment_lines = {} -- Accumulates lines until we hit a reference
 
   for _, line in ipairs(lines) do
     -- Check for reference pattern: <file>:<start>-<end>:
@@ -28,9 +28,18 @@ local function parse_references(buf)
       local abs_path = vim.fn.fnamemodify(filepath, ":p")
       local line_num = tonumber(start_line)
       local key = abs_path .. ":" .. line_num
-      while #comment_lines > 0 and vim.trim(comment_lines[#comment_lines]) == "" do table.remove(comment_lines) end
-      while #comment_lines > 0 and vim.trim(comment_lines[1]) == "" do table.remove(comment_lines, 1) end
-      for i, l in ipairs(comment_lines) do comment_lines[i] = "┇ " .. l end
+      -- Trim empty lines from end
+      while #comment_lines > 0 and vim.trim(comment_lines[#comment_lines]) == "" do
+        table.remove(comment_lines)
+      end
+      -- Trim empty lines from start
+      while #comment_lines > 0 and vim.trim(comment_lines[1]) == "" do
+        table.remove(comment_lines, 1)
+      end
+      -- Prefix each line with gutter marker
+      for i, l in ipairs(comment_lines) do
+        comment_lines[i] = "┇ " .. l
+      end
       local comment = table.concat(comment_lines, "\n")
 
       refs[key] = {
@@ -156,16 +165,6 @@ local function build_prompt(prompt, range)
   return full_prompt
 end
 
-local function buffer_has_content()
-  local buf = vim.fn.bufnr(BUFFER_NAME)
-  if buf == -1 then
-    return false
-  end
-  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local text = table.concat(lines, "\n")
-  return vim.trim(text) ~= ""
-end
-
 local function send_to_claude(text, on_success)
   local ccsend_path = get_ccsend_path()
 
@@ -242,7 +241,7 @@ function M.submit()
   end
 
   local text = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n")
-  if text == "" then
+  if vim.trim(text) == "" then
     vim.notify("buffer is empty", vim.log.levels.WARN)
     return
   end
