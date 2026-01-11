@@ -78,4 +78,5 @@ PANE_ID="$FOUND_PANES"
 
 # Send the command to the pane
 tmux send-keys -t "$PANE_ID" -l "$CMD"
+sleep 0.1
 tmux send-keys -t "$PANE_ID" Enter
