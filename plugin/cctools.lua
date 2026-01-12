@@ -1,18 +1,18 @@
-if vim.g.loaded_ccsend then return end
-vim.g.loaded_ccsend = true
+if vim.g.loaded_cctools then return end
+vim.g.loaded_cctools = true
 
-local ccsend = require("ccsend")
+local cctools = require("cctools")
 
 vim.api.nvim_create_user_command("CCSend", function(opts)
-  ccsend.send(opts.args, { range = opts.range })
+  cctools.send(opts.args, { range = opts.range })
 end, {
   nargs = "*",
   range = true,
-  desc = "Send prompt to Claude Code via ccsend",
+  desc = "Send prompt to Claude Code",
 })
 
 vim.api.nvim_create_user_command("CCAdd", function(opts)
-  ccsend.add(opts.args, { range = opts.range })
+  cctools.add(opts.args, { range = opts.range })
 end, {
   nargs = "*",
   range = true,
@@ -20,9 +20,9 @@ end, {
 })
 
 vim.api.nvim_create_user_command("CCSubmit", function()
-  ccsend.submit()
+  cctools.submit()
 end, {
   desc = "Submit **claude-code** buffer to Claude Code and delete it",
 })
 
-vim.keymap.set("n", "gC", ccsend.goto_comment, { desc = "Go to claude comment for code under cursor" })
+vim.keymap.set("n", "gC", cctools.goto_comment, { desc = "Go to claude comment for code under cursor" })

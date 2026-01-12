@@ -6,12 +6,12 @@ Toolkit for integrating Claude Code with developer workflows via CLI utilities a
 
 ```
 bin/
-  cccode     # Bash wrapper: runs Claude Code with --permission-mode acceptEdits --model opus
-  ccsend     # Bash script: sends prompts to Claude Code running in tmux pane
-lua/ccsend/
-  init.lua   # Core Neovim plugin: buffer management, reference parsing, virtual comments
+  cccode      # Bash wrapper: runs Claude Code with --permission-mode acceptEdits --model opus
+  ccsend      # Bash script: sends prompts to Claude Code running in tmux pane
+lua/cctools/
+  init.lua    # Core Neovim plugin: buffer management, reference parsing, virtual comments
 plugin/
-  ccsend.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands
+  cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands
 ```
 
 ## Tech Stack
@@ -44,7 +44,7 @@ plugin/
 
 **Buffer naming**: Special buffers use `**name**` format (e.g., `**claude-code**`)
 
-**Code references**: Format is `<file>:<start>-<end>:` - parsed by `parse_references()` in `lua/ccsend/init.lua:18`
+**Code references**: Format is `<file>:<start>-<end>:` - parsed by `parse_references()` in `lua/cctools/init.lua:18`
 
 **Process tree walking**: `bin/ccsend` walks up the process tree from Claude PID to find the associated tmux pane
 
