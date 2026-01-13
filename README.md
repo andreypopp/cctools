@@ -17,11 +17,13 @@ echo "your prompt" | ccsend
 
 ## Neovim Plugin
 
-Add to your config (e.g. lazy.nvim):
-```lua
-{ dir = "~/path/to/cctools" }
-```
+Using [Lazy](https://github.com/folke/lazy.nvim):
 
+```lua
+return {
+  "andreypopp/cctools"
+}
+```
 Commands:
 
 - `:CCSend <prompt>` - Send prompt to Claude Code
