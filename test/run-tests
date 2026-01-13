@@ -23,6 +23,28 @@ echo ""
 # Track overall status
 FAILED=0
 
+# Run shellcheck on bash scripts
+echo -e "${YELLOW}Running shellcheck on bash scripts...${NC}"
+if command -v shellcheck >/dev/null 2>&1; then
+  SCRIPTS=(bin/cccode bin/ccsend test/nvim-test test/run-tests)
+  SHELLCHECK_FAILED=0
+  for script in "${SCRIPTS[@]}"; do
+    if ! shellcheck "$script"; then
+      SHELLCHECK_FAILED=1
+    fi
+  done
+  if [ $SHELLCHECK_FAILED -eq 0 ]; then
+    echo -e "${GREEN}✓ Shellcheck passed${NC}"
+  else
+    echo -e "${RED}✗ Shellcheck failed${NC}"
+    FAILED=1
+  fi
+else
+  echo -e "${YELLOW}⚠ Shellcheck not installed, skipping${NC}"
+fi
+
+echo ""
+
 # Run macro expansion tests
 echo -e "${YELLOW}Running macro expansion tests...${NC}"
 if nvim -u test/init.lua -l test/test_macros.lua; then

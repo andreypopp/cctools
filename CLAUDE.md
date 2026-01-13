@@ -21,6 +21,7 @@ test/
 .github/
   workflows/
     test.yml   # CI/CD: runs tests on PRs and main branch pushes
+.editorconfig  # Editor configuration for consistent formatting
 ```
 
 ## Tech Stack
@@ -29,7 +30,9 @@ test/
 - **Lua** - Neovim plugin (lua/, plugin/), test scripts (test/)
 - **tmux** - Process communication via `tmux send-keys`
 - **pnpx** - Runs `@anthropic-ai/claude-code` package
+- **Shellcheck** - Bash script linting and validation
 - **GitHub Actions** - CI/CD for automated testing
+- **EditorConfig** - Consistent formatting across editors
 
 ## Bash Conventions (bin/)
 
@@ -38,6 +41,7 @@ test/
 - Error messages to stderr: `echo "error: ..." >&2`
 - Support both argument and stdin input patterns
 - No external dependencies beyond standard Unix tools
+- All scripts must pass shellcheck with no warnings
 
 ## Lua Conventions (lua/, plugin/)
 
@@ -49,6 +53,15 @@ test/
 - Notifications via `vim.notify(msg, vim.log.levels.{INFO,WARN,ERROR})`
 - Async operations via `vim.fn.jobstart()` with callbacks
 - Virtual text via extmarks API (`nvim_buf_set_extmark`)
+
+## Code Formatting
+
+Project uses `.editorconfig` for consistent formatting across editors:
+- **Indentation**: 2 spaces for all file types (Bash, Lua, YAML, Markdown)
+- **Line endings**: LF (Unix-style)
+- **Charset**: UTF-8
+- **Trailing whitespace**: Trimmed (except in Markdown)
+- **Final newline**: Always inserted
 
 ## Key Patterns
 
@@ -77,9 +90,13 @@ No build step. Install in Neovim via lazy.nvim:
 
 **Development Testing:**
 ```bash
-./test/run-tests                # Run all automated tests
+./test/run-tests                # Run all automated tests (shellcheck + Lua tests)
 ./test/nvim-test [file...]      # Launch isolated test environment
 ```
+
+Test suite includes:
+- Shellcheck linting on all bash scripts (bin/*, test/*)
+- Macro expansion tests (test/test_macros.lua)
 
 **Neovim Commands (after loading):**
 ```vim
@@ -91,4 +108,5 @@ No build step. Install in Neovim via lazy.nvim:
 **CI/CD:**
 - Tests run automatically on PRs and pushes to `main`
 - GitHub Actions workflow: `.github/workflows/test.yml`
-- Currently runs macro expansion tests via `nvim -u test/init.lua -l test/test_macros.lua`
+- Installs Neovim (stable) and shellcheck
+- Runs full test suite via `./test/run-tests`
