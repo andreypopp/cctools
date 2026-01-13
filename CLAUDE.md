@@ -9,17 +9,27 @@ bin/
   cccode      # Bash wrapper: runs Claude Code with --permission-mode acceptEdits --model opus
   ccsend      # Bash script: sends prompts to Claude Code running in tmux pane
 lua/cctools/
-  init.lua    # Core Neovim plugin: buffer management, reference parsing, virtual comments
+  init.lua    # Core Neovim plugin: buffer management, reference parsing, virtual comments, macro expansion
 plugin/
   cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands
+test/
+  init.lua       # Isolated test environment configuration
+  nvim-test      # Launch Neovim with plugin loaded from local directory
+  run-tests      # Run all automated tests
+  test_macros.lua # Automated tests for macro expansion
+  manual_test.md  # Manual testing guide
+.github/
+  workflows/
+    test.yml   # CI/CD: runs tests on PRs and main branch pushes
 ```
 
 ## Tech Stack
 
-- **Bash** - CLI scripts (bin/)
-- **Lua** - Neovim plugin (lua/, plugin/)
+- **Bash** - CLI scripts (bin/), test runner (test/)
+- **Lua** - Neovim plugin (lua/, plugin/), test scripts (test/)
 - **tmux** - Process communication via `tmux send-keys`
 - **pnpx** - Runs `@anthropic-ai/claude-code` package
+- **GitHub Actions** - CI/CD for automated testing
 
 ## Bash Conventions (bin/)
 
@@ -50,6 +60,8 @@ plugin/
 
 **Virtual line comments**: Extmarks with `virt_lines_above = true` display prompts above referenced code
 
+**Macro expansion**: Prompts support `@file`, `@filename`, `@filepath` (git-relative or absolute path) and `@basename` (filename only). Macros expand via `expand_macros()` in `lua/cctools/init.lua:195` with word-boundary pattern matching. Uses `macro_map` table structure for easy extensibility.
+
 ## Running/Testing
 
 No build step. Install in Neovim via lazy.nvim:
@@ -57,15 +69,26 @@ No build step. Install in Neovim via lazy.nvim:
 { dir = "~/path/to/cctools" }
 ```
 
-Test CLI scripts directly:
+**Production Usage:**
 ```bash
 ./bin/cccode                    # Launch Claude Code
 ./bin/ccsend "test prompt"      # Send to running instance
 ```
 
-Test Neovim commands after loading the plugin:
-```vim
-:CCSend test prompt
-:CCAdd test
-:CCSubmit
+**Development Testing:**
+```bash
+./test/run-tests                # Run all automated tests
+./test/nvim-test [file...]      # Launch isolated test environment
 ```
+
+**Neovim Commands (after loading):**
+```vim
+:CCSend test prompt             # Send prompt immediately
+:CCAdd test                     # Add to staging buffer
+:CCSubmit                       # Submit staged buffer
+```
+
+**CI/CD:**
+- Tests run automatically on PRs and pushes to `main`
+- GitHub Actions workflow: `.github/workflows/test.yml`
+- Currently runs macro expansion tests via `nvim -u test/init.lua -l test/test_macros.lua`
