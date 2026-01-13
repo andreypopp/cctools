@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -eu
+
+# Run all automated tests for cctools
+# Usage: ./test/run-tests
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$REPO_DIR"
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "==================================="
+echo "Running cctools automated tests"
+echo "==================================="
+echo ""
+
+# Track overall status
+FAILED=0
+
+# Run macro expansion tests
+echo -e "${YELLOW}Running macro expansion tests...${NC}"
+if nvim -u test/init.lua -l test/test_macros.lua; then
+  echo -e "${GREEN}✓ Macro tests passed${NC}"
+else
+  echo -e "${RED}✗ Macro tests failed${NC}"
+  FAILED=1
+fi
+
+echo ""
+echo "==================================="
+
+if [ $FAILED -eq 0 ]; then
+  echo -e "${GREEN}All tests passed!${NC}"
+  exit 0
+else
+  echo -e "${RED}Some tests failed${NC}"
+  exit 1
+fi

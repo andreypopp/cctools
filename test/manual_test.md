@@ -4,7 +4,7 @@
 
 1. Launch test environment:
    ```bash
-   ./bin/nvim-test README.md
+   ./test/nvim-test README.md
    ```
 
 2. Try each command to verify macro expansion:
