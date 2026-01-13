@@ -46,3 +46,23 @@ Features:
 - Code references use the format `<file>:<start>-<end>:` - use `gF` to jump to the referenced location
 - In source files, use `gC` to jump to the claude comment for the code under cursor
 - Comments appear as virtual lines above the referenced code in source files, cleared on submit
+
+### Macros
+
+Prompts support macro expansion that happens automatically before sending to Claude:
+
+**`@file`** (aliases: `@filename`, `@filepath`) - Expands to the current buffer's file path:
+- If in a git repository: path relative to git root (e.g., `src/main.lua`)
+- If not in a git repo: absolute path (e.g., `/home/user/project/main.lua`)
+- If buffer has no file: macro is preserved unchanged
+
+Examples:
+```vim
+:CCSend review @file for bugs
+" Sends: "review src/main.lua for bugs"
+
+:CCAdd refactor @file to use async patterns
+" Adds to buffer: "refactor src/main.lua to use async patterns"
+```
+
+Macros respect word boundaries, so `email@file.com` won't expand.
