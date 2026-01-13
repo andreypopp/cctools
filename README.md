@@ -56,6 +56,9 @@ Prompts support macro expansion that happens automatically before sending to Cla
 - If not in a git repo: absolute path (e.g., `/home/user/project/main.lua`)
 - If buffer has no file: macro is preserved unchanged
 
+**`@basename`** - Expands to just the filename (no directory path):
+- Example: `main.lua` (regardless of git context)
+
 Examples:
 ```vim
 :CCSend review @file for bugs
@@ -63,6 +66,12 @@ Examples:
 
 :CCAdd refactor @file to use async patterns
 " Adds to buffer: "refactor src/main.lua to use async patterns"
+
+:CCSend rename @basename to something more descriptive
+" Sends: "rename main.lua to something more descriptive"
+
+:CCAdd compare @basename with @file
+" Shows both filename only and full path in one prompt
 ```
 
 Macros respect word boundaries, so `email@file.com` won't expand.

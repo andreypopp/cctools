@@ -200,17 +200,28 @@ local function expand_macros(text)
     return text
   end
 
-  -- Replace macros with word boundaries
-  -- Order matters: longest patterns first to avoid partial matches
-  local macros = { "@filepath", "@filename", "@file" }
+  -- Get basename (filename only) from buffer
+  local bufpath = vim.api.nvim_buf_get_name(0)
+  local basename = vim.fn.fnamemodify(bufpath, ":t")
 
-  for _, macro in ipairs(macros) do
+  -- Define macros and their replacement values
+  -- Order matters: longest patterns first to avoid partial matches
+  local macro_map = {
+    { pattern = "@basename", value = basename },
+    { pattern = "@filepath", value = filepath },
+    { pattern = "@filename", value = filepath },
+    { pattern = "@file", value = filepath },
+  }
+
+  for _, macro in ipairs(macro_map) do
+    local pattern = macro.pattern
+    local value = macro.value
     -- Match at start of string
-    text = text:gsub("^" .. vim.pesc(macro) .. "([^%w_])", filepath .. "%1")
-    text = text:gsub("^" .. vim.pesc(macro) .. "$", filepath)
+    text = text:gsub("^" .. vim.pesc(pattern) .. "([^%w_])", value .. "%1")
+    text = text:gsub("^" .. vim.pesc(pattern) .. "$", value)
     -- Match in middle or end with word boundary
-    text = text:gsub("([^%w_])" .. vim.pesc(macro) .. "([^%w_])", "%1" .. filepath .. "%2")
-    text = text:gsub("([^%w_])" .. vim.pesc(macro) .. "$", "%1" .. filepath)
+    text = text:gsub("([^%w_])" .. vim.pesc(pattern) .. "([^%w_])", "%1" .. value .. "%2")
+    text = text:gsub("([^%w_])" .. vim.pesc(pattern) .. "$", "%1" .. value)
   end
 
   return text

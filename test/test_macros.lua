@@ -35,12 +35,21 @@ local function get_expand_macros_fn()
       if not filepath then
         return text
       end
-      local macros = { "@filepath", "@filename", "@file" }
-      for _, macro in ipairs(macros) do
-        text = text:gsub("^" .. vim.pesc(macro) .. "([^%w_])", filepath .. "%1")
-        text = text:gsub("^" .. vim.pesc(macro) .. "$", filepath)
-        text = text:gsub("([^%w_])" .. vim.pesc(macro) .. "([^%w_])", "%1" .. filepath .. "%2")
-        text = text:gsub("([^%w_])" .. vim.pesc(macro) .. "$", "%1" .. filepath)
+      local bufpath = vim.api.nvim_buf_get_name(0)
+      local basename = vim.fn.fnamemodify(bufpath, ":t")
+      local macro_map = {
+        { pattern = "@basename", value = basename },
+        { pattern = "@filepath", value = filepath },
+        { pattern = "@filename", value = filepath },
+        { pattern = "@file", value = filepath },
+      }
+      for _, macro in ipairs(macro_map) do
+        local pattern = macro.pattern
+        local value = macro.value
+        text = text:gsub("^" .. vim.pesc(pattern) .. "([^%w_])", value .. "%1")
+        text = text:gsub("^" .. vim.pesc(pattern) .. "$", value)
+        text = text:gsub("([^%w_])" .. vim.pesc(pattern) .. "([^%w_])", "%1" .. value .. "%2")
+        text = text:gsub("([^%w_])" .. vim.pesc(pattern) .. "$", "%1" .. value)
       end
       return text
     end
@@ -62,6 +71,9 @@ local tests = {
   { input = "@filepath is the path", desc = "longest macro" },
   { input = "email@file.com should not expand", desc = "no word boundary before" },
   { input = "@filenotamacro", desc = "no word boundary after" },
+  { input = "rename @basename to something else", desc = "basename in middle" },
+  { input = "@basename", desc = "basename alone" },
+  { input = "compare @basename with @file", desc = "basename and file together" },
 }
 
 print("\n=== Macro Expansion Tests ===\n")
@@ -90,8 +102,17 @@ for i, test in ipairs(tests) do
       status = "✗ FAIL"
       failed = failed + 1
     end
+  elseif test.input:match("@basename") then
+    -- Should expand to just filename
+    if result ~= test.input and result:match("test_macros%.lua") then
+      status = "✓ PASS"
+      passed = passed + 1
+    else
+      status = "✗ FAIL"
+      failed = failed + 1
+    end
   else
-    -- Should expand
+    -- Should expand to full path
     if result ~= test.input and result:match("test/test_macros%.lua") then
       status = "✓ PASS"
       passed = passed + 1
