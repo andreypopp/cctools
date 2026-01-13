@@ -11,7 +11,7 @@ bin/
 lua/cctools/
   init.lua    # Core Neovim plugin: buffer management, reference parsing, virtual comments, macro expansion
 plugin/
-  cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands
+  cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands and key mappings
 test/
   init.lua       # Isolated test environment configuration
   nvim-test      # Launch Neovim with plugin loaded from local directory
@@ -75,6 +75,8 @@ Project uses `.editorconfig` for consistent formatting across editors:
 
 **Macro expansion**: Prompts support `@file`, `@filename`, `@filepath` (git-relative or absolute path) and `@basename` (filename only). Macros expand via `expand_macros()` in `lua/cctools/init.lua:195` with word-boundary pattern matching. Uses `macro_map` table structure for easy extensibility.
 
+**Key mappings**: Plugin defines `<leader>ac` (CCSend prompt), `<leader>aa` (CCAdd prompt), `<leader>as` (CCSubmit), and navigation keys `gC`, `]C`, `[C` for comment navigation. All defined in `plugin/cctools.lua`.
+
 ## Running/Testing
 
 No build step. Install in Neovim via lazy.nvim:
@@ -103,6 +105,14 @@ Test suite includes:
 :CCSend test prompt             # Send prompt immediately
 :CCAdd test                     # Add to staging buffer
 :CCSubmit                       # Submit staged buffer
+```
+
+**Neovim Key Mappings:**
+```vim
+<leader>ac                      # Prompt for CCSend input
+<leader>aa                      # Prompt for CCAdd input
+<leader>as                      # Execute CCSubmit
+gC, ]C, [C                      # Navigate claude comments
 ```
 
 **CI/CD:**

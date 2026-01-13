@@ -55,6 +55,17 @@ else
 fi
 
 echo ""
+
+# Run key mapping tests
+echo -e "${YELLOW}Running key mapping tests...${NC}"
+if nvim -u test/init.lua -l test/test_keymaps.lua; then
+  echo -e "${GREEN}✓ Keymap tests passed${NC}"
+else
+  echo -e "${RED}✗ Keymap tests failed${NC}"
+  FAILED=1
+fi
+
+echo ""
 echo "==================================="
 
 if [ $FAILED -eq 0 ]; then

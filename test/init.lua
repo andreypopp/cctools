@@ -55,6 +55,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
     vim.notify("cctools test environment loaded from: " .. root, vim.log.levels.INFO)
     vim.notify("Commands: :CCSend, :CCAdd, :CCSubmit", vim.log.levels.INFO)
-    vim.notify("Keymaps: gC, ]C, [C", vim.log.levels.INFO)
+    vim.notify("Keymaps: <leader>ac, <leader>aa, <leader>as, gC, ]C, [C", vim.log.levels.INFO)
   end,
 })

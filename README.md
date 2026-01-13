@@ -32,6 +32,14 @@ Commands:
 - `:'<,'>CCAdd <prompt>` - Add prompt with visual selection
 - `:CCSubmit` - Send `**claude-code**` buffer contents and delete it
 
+Key Mappings:
+
+- `<leader>ac` - Prompt for `:CCSend` input (normal/visual mode)
+- `<leader>aa` - Prompt for `:CCAdd` input (normal/visual mode)
+- `<leader>as` - Execute `:CCSubmit` immediately
+- `gC` - Jump to claude comment for code under cursor
+- `]C` / `[C` - Navigate to next/previous claude comment
+
 ### The `**claude-code**` Buffer
 
 The `**claude-code**` buffer lets you compose multi-part prompts before sending. Use `:CCAdd` to accumulate code snippets with comments, then `:CCSubmit` to send everything at once.

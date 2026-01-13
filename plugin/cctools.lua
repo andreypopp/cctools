@@ -25,6 +25,14 @@ end, {
   desc = "Submit **claude-code** buffer to Claude Code and delete it",
 })
 
+-- Navigation keymaps
 vim.keymap.set("n", "gC", cctools.goto_comment, { desc = "Go to claude comment for code under cursor" })
 vim.keymap.set("n", "]C", cctools.next_comment, { desc = "Go to next claude comment" })
 vim.keymap.set("n", "[C", cctools.prev_comment, { desc = "Go to previous claude comment" })
+
+-- Command keymaps
+vim.keymap.set("n", "<leader>ac", ":CCSend ", { desc = "CCSend: prompt for input" })
+vim.keymap.set("v", "<leader>ac", ":CCSend ", { desc = "CCSend: prompt with selection" })
+vim.keymap.set("n", "<leader>aa", ":CCAdd ", { desc = "CCAdd: prompt for input" })
+vim.keymap.set("v", "<leader>aa", ":CCAdd ", { desc = "CCAdd: prompt with selection" })
+vim.keymap.set("n", "<leader>as", "<cmd>CCSubmit<CR>", { desc = "CCSubmit: submit to Claude Code" })
