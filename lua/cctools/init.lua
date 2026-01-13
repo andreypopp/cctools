@@ -3,7 +3,7 @@ local M = {}
 local BUFFER_NAME = "**claude-code**"
 local NS = vim.api.nvim_create_namespace("cctools-comment")
 
----@type table<string, {extmark_id: integer, buf: integer, comment: string}>
+---@type table<string, {extmark_id: integer, hl_extmark_id: integer, buf: integer, comment: string}>
 local current_comments = {}
 
 local function clear_all_comments()
@@ -22,12 +22,13 @@ local function parse_references(buf)
 
   for _, line in ipairs(lines) do
     -- Check for reference pattern: <file>:<start>-<end>:
-    local filepath, start_line = line:match("^(.+):(%d+)-%d+:$")
+    local filepath, start_line, end_line = line:match("^(.+):(%d+)-(%d+):$")
 
     if filepath then
       local abs_path = vim.fn.fnamemodify(filepath, ":p")
-      local line_num = tonumber(start_line)
-      local key = abs_path .. ":" .. line_num
+      local start_num = tonumber(start_line)
+      local end_num = tonumber(end_line)
+      local key = abs_path .. ":" .. start_num
       -- Trim empty lines from end
       while #comment_lines > 0 and vim.trim(comment_lines[#comment_lines]) == "" do
         table.remove(comment_lines)
@@ -38,13 +39,14 @@ local function parse_references(buf)
       end
       -- Prefix each line with gutter marker
       for i, l in ipairs(comment_lines) do
-        comment_lines[i] = "┇ " .. l
+        comment_lines[i] = "claude: " .. l
       end
       local comment = table.concat(comment_lines, "\n")
 
       refs[key] = {
         filepath = abs_path,
-        line = line_num,
+        start_line = start_num,
+        end_line = end_num,
         comment = comment,
       }
       comment_lines = {}
@@ -65,6 +67,7 @@ local function reconcile_comments(new_refs)
     if not new_ref or new_ref.comment ~= data.comment then
       if vim.api.nvim_buf_is_valid(data.buf) then
         vim.api.nvim_buf_del_extmark(data.buf, NS, data.extmark_id)
+        vim.api.nvim_buf_del_extmark(data.buf, NS, data.hl_extmark_id)
       end
       current_comments[key] = nil
     end
@@ -81,13 +84,21 @@ local function reconcile_comments(new_refs)
           table.insert(virt_lines, { { l, "Comment" } })
         end
 
-        local extmark_id = vim.api.nvim_buf_set_extmark(target_buf, NS, ref.line - 1, 0, {
+        local extmark_id = vim.api.nvim_buf_set_extmark(target_buf, NS, ref.start_line - 1, 0, {
           virt_lines = virt_lines,
           virt_lines_above = true,
         })
 
+        -- Highlight the referenced lines
+        local hl_extmark_id = vim.api.nvim_buf_set_extmark(target_buf, NS, ref.start_line - 1, 0, {
+          end_row = ref.end_line,
+          hl_group = "DiffText",
+          hl_eol = true,
+        })
+
         current_comments[key] = {
           extmark_id = extmark_id,
+          hl_extmark_id = hl_extmark_id,
           buf = target_buf,
           comment = ref.comment,
         }
@@ -250,6 +261,58 @@ function M.submit()
     clear_all_comments()
     vim.api.nvim_buf_delete(buf, { force = true })
   end)
+end
+
+local function get_comment_lines_in_buffer(buf)
+  local lines = {}
+  for _, data in pairs(current_comments) do
+    if data.buf == buf then
+      local extmark = vim.api.nvim_buf_get_extmark_by_id(buf, NS, data.extmark_id, {})
+      if extmark and #extmark > 0 then
+        table.insert(lines, extmark[1] + 1) -- Convert to 1-indexed
+      end
+    end
+  end
+  table.sort(lines)
+  return lines
+end
+
+function M.next_comment()
+  local buf = vim.api.nvim_get_current_buf()
+  local cursor_line = vim.fn.line(".")
+  local lines = get_comment_lines_in_buffer(buf)
+
+  for _, line in ipairs(lines) do
+    if line > cursor_line then
+      vim.api.nvim_win_set_cursor(0, { line, 0 })
+      return
+    end
+  end
+
+  if #lines > 0 then
+    vim.api.nvim_win_set_cursor(0, { lines[1], 0 })
+  else
+    vim.notify("no comments in buffer", vim.log.levels.WARN)
+  end
+end
+
+function M.prev_comment()
+  local buf = vim.api.nvim_get_current_buf()
+  local cursor_line = vim.fn.line(".")
+  local lines = get_comment_lines_in_buffer(buf)
+
+  for i = #lines, 1, -1 do
+    if lines[i] < cursor_line then
+      vim.api.nvim_win_set_cursor(0, { lines[i], 0 })
+      return
+    end
+  end
+
+  if #lines > 0 then
+    vim.api.nvim_win_set_cursor(0, { lines[#lines], 0 })
+  else
+    vim.notify("no comments in buffer", vim.log.levels.WARN)
+  end
 end
 
 function M.goto_comment()

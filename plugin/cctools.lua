@@ -26,3 +26,5 @@ end, {
 })
 
 vim.keymap.set("n", "gC", cctools.goto_comment, { desc = "Go to claude comment for code under cursor" })
+vim.keymap.set("n", "]C", cctools.next_comment, { desc = "Go to next claude comment" })
+vim.keymap.set("n", "[C", cctools.prev_comment, { desc = "Go to previous claude comment" })
