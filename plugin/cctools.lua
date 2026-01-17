@@ -19,6 +19,14 @@ end, {
   desc = "Add prompt to **claude-code** buffer",
 })
 
+vim.api.nvim_create_user_command("CC", function(opts)
+  cctools.cc(opts.args, { range = opts.range })
+end, {
+  nargs = "*",
+  range = true,
+  desc = "Add prompt to **claude-code** buffer and switch to it",
+})
+
 vim.api.nvim_create_user_command("CCSubmit", function()
   cctools.submit()
 end, {

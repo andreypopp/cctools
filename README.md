@@ -21,6 +21,7 @@ echo "prompt" | ccsend      # Send via stdin
 
 - `:CCSend <prompt>` — send prompt to Claude Code
 - `:CCAdd <prompt>` — add prompt to `**claude-code**` staging buffer
+- `:CC <prompt>` — add prompt to `**claude-code**` staging buffer and switch to it
 - `:CCSubmit` — send `**claude-code**` buffer to Claude Code
 
 All commands accept visual selection (`:'<,'>CCSend ...`). In this case

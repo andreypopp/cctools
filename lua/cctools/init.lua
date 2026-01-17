@@ -299,6 +299,30 @@ function M.add(prompt, opts)
   vim.notify("added to " .. BUFFER_NAME, vim.log.levels.INFO)
 end
 
+function M.cc(prompt, opts)
+  local text = build_prompt(prompt, opts and opts.range)
+  local buf = get_or_create_buffer()
+
+  if text ~= "" then
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local new_lines = vim.split(text, "\n")
+
+    if #lines == 1 and lines[1] == "" then
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, new_lines)
+    else
+      table.insert(lines, "")
+      table.insert(lines, "---")
+      table.insert(lines, "")
+      vim.list_extend(lines, new_lines)
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    end
+
+    vim.bo[buf].modified = true
+  end
+
+  vim.cmd("buffer " .. buf)
+end
+
 function M.submit()
   local buf = vim.fn.bufnr(BUFFER_NAME)
   if buf == -1 then

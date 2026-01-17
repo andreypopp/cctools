@@ -11,7 +11,7 @@ bin/
 lua/cctools/
   init.lua    # Core Neovim plugin: buffer management, reference parsing, virtual comments, macro expansion
 plugin/
-  cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CCSubmit commands and key mappings
+  cctools.lua # Plugin entry: defines :CCSend, :CCAdd, :CC, :CCSubmit commands and key mappings
 test/
   init.lua       # Isolated test environment configuration
   nvim-test      # Launch Neovim with plugin loaded from local directory
@@ -104,6 +104,7 @@ Test suite includes:
 ```vim
 :CCSend test prompt             # Send prompt immediately
 :CCAdd test                     # Add to staging buffer
+:CC [prompt]                    # Add to staging buffer and switch to it
 :CCSubmit                       # Submit staged buffer
 ```
 
