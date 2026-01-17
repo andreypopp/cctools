@@ -243,8 +243,6 @@ local function send_to_claude(text, on_success)
       if code == 0 then
         vim.notify("sent to Claude Code", vim.log.levels.INFO)
         if on_success then on_success() end
-      else
-        vim.notify("failed to send (exit: " .. code .. ")", vim.log.levels.ERROR)
       end
     end,
     on_stderr = function(_, data)
