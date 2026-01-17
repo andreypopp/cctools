@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -eu
+
+# Run all automated tests for cctools
+# Usage: ./test/run-tests
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$REPO_DIR"
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "==================================="
+echo "Running cctools automated tests"
+echo "==================================="
+echo ""
+
+# Track overall status
+FAILED=0
+
+# Run shellcheck on bash scripts
+echo -e "${YELLOW}Running shellcheck on bash scripts...${NC}"
+if command -v shellcheck >/dev/null 2>&1; then
+  SCRIPTS=(bin/cccode bin/ccsend test/nvim-test test/run-tests)
+  SHELLCHECK_FAILED=0
+  for script in "${SCRIPTS[@]}"; do
+    if ! shellcheck "$script"; then
+      SHELLCHECK_FAILED=1
+    fi
+  done
+  if [ $SHELLCHECK_FAILED -eq 0 ]; then
+    echo -e "${GREEN}✓ Shellcheck passed${NC}"
+  else
+    echo -e "${RED}✗ Shellcheck failed${NC}"
+    FAILED=1
+  fi
+else
+  echo -e "${YELLOW}⚠ Shellcheck not installed, skipping${NC}"
+fi
+
+echo ""
+
+# Run macro expansion tests
+echo -e "${YELLOW}Running macro expansion tests...${NC}"
+if nvim -u test/init.lua -l test/test_macros.lua; then
+  echo -e "${GREEN}✓ Macro tests passed${NC}"
+else
+  echo -e "${RED}✗ Macro tests failed${NC}"
+  FAILED=1
+fi
+
+echo ""
+
+# Run key mapping tests
+echo -e "${YELLOW}Running key mapping tests...${NC}"
+if nvim -u test/init.lua -l test/test_keymaps.lua; then
+  echo -e "${GREEN}✓ Keymap tests passed${NC}"
+else
+  echo -e "${RED}✗ Keymap tests failed${NC}"
+  FAILED=1
+fi
+
+echo ""
+echo "==================================="
+
+if [ $FAILED -eq 0 ]; then
+  echo -e "${GREEN}All tests passed!${NC}"
+  exit 0
+else
+  echo -e "${RED}Some tests failed${NC}"
+  exit 1
+fi
