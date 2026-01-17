@@ -3,6 +3,10 @@ local M = {}
 local BUFFER_NAME = "**claude-code**"
 local NS = vim.api.nvim_create_namespace("cctools-comment")
 
+-- Define highlight groups with default links
+vim.api.nvim_set_hl(0, "CCToolsComment", { default = true, link = "Comment" })
+vim.api.nvim_set_hl(0, "CCToolsCode", { default = true, link = "DiffText" })
+
 ---@type table<string, {extmark_id: integer, hl_extmark_id: integer, buf: integer, comment: string}>
 local current_comments = {}
 
@@ -81,7 +85,7 @@ local function reconcile_comments(new_refs)
       if target_buf ~= -1 and vim.api.nvim_buf_is_valid(target_buf) then
         local virt_lines = {}
         for _, l in ipairs(vim.split(ref.comment, "\n")) do
-          table.insert(virt_lines, { { l, "Comment" } })
+          table.insert(virt_lines, { { l, "CCToolsComment" } })
         end
 
         local extmark_id = vim.api.nvim_buf_set_extmark(target_buf, NS, ref.start_line - 1, 0, {
@@ -92,7 +96,7 @@ local function reconcile_comments(new_refs)
         -- Highlight the referenced lines
         local hl_extmark_id = vim.api.nvim_buf_set_extmark(target_buf, NS, ref.start_line - 1, 0, {
           end_row = ref.end_line,
-          hl_group = "DiffText",
+          hl_group = "CCToolsCode",
           hl_eol = true,
         })
 

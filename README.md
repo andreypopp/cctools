@@ -57,6 +57,19 @@ Features:
 - In source files, use `gC` to jump to the claude comment for the code under cursor
 - Comments appear as virtual lines above the referenced code in source files, cleared on submit
 
+### Highlight Groups
+
+The plugin defines two highlight groups for customization:
+
+- **`CCToolsComment`** - Used for virtual comment lines above referenced code. Linked to `Comment` by default.
+- **`CCToolsCode`** - Used to highlight the referenced code lines. Linked to `DiffText` by default.
+
+To customize, define these in your colorscheme or config:
+```lua
+vim.api.nvim_set_hl(0, "CCToolsComment", { fg = "#888888", italic = true })
+vim.api.nvim_set_hl(0, "CCToolsCode", { bg = "#2d3f4f" })
+```
+
 ### Macros
 
 Prompts support macro expansion that happens automatically before sending to Claude:
