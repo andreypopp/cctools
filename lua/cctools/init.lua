@@ -163,49 +163,36 @@ local function get_visual_selection()
   return table.concat(lines, "\n"), location
 end
 
+local function make_relative(path, base)
+  path = vim.fs.normalize(path)
+  base = vim.fs.normalize(base)
+  if path:sub(1, #base + 1) == base .. "/" then
+    return path:sub(#base + 2)
+  end
+  return path
+end
+
 local function get_file_path_for_buffer()
+  if vim.bo[0].buftype ~= "" then return nil end
   local bufpath = vim.api.nvim_buf_get_name(0)
+  if vim.fn.filereadable(bufpath) == 0 then return nil end
 
-  -- Check if buffer has a file path and it's not a special buffer
-  if bufpath == "" or bufpath:match("^%*%*.*%*%*$") then
-    return nil
-  end
-
-  -- Get absolute path
-  local abs_path = vim.fn.fnamemodify(bufpath, ":p")
-
-  -- Check if file exists
-  if vim.fn.filereadable(abs_path) == 0 then
-    return nil
-  end
-
-  -- Try to find git root
-  local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(vim.fn.fnamemodify(abs_path, ":h")) .. " rev-parse --show-toplevel 2>/dev/null")[1]
+  local dirname = vim.fn.fnamemodify(bufpath, ":h")
+  local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(dirname) .. " rev-parse --show-toplevel 2>/dev/null")[1]
 
   if git_root and git_root ~= "" and vim.v.shell_error == 0 then
-    -- File is in a git repo, return relative path
-    local rel_path = vim.fn.fnamemodify(abs_path, ":s?" .. vim.pesc(git_root) .. "/??")
-    return rel_path
+    return make_relative(bufpath, git_root)
   else
-    -- Not in a git repo, return absolute path
-    return abs_path
+    return bufpath
   end
 end
 
 local function expand_macros(text)
   local filepath = get_file_path_for_buffer()
+  if not filepath then return text end
 
-  -- If we can't get a file path, return text unchanged
-  if not filepath then
-    return text
-  end
+  local basename = vim.fn.fnamemodify(filepath, ":t")
 
-  -- Get basename (filename only) from buffer
-  local bufpath = vim.api.nvim_buf_get_name(0)
-  local basename = vim.fn.fnamemodify(bufpath, ":t")
-
-  -- Define macros and their replacement values
-  -- Order matters: longest patterns first to avoid partial matches
   local macro_map = {
     { pattern = "@basename", value = basename },
     { pattern = "@filepath", value = filepath },
@@ -237,7 +224,6 @@ local function build_prompt(prompt, range)
     end
   end
 
-  -- Expand macros in the prompt
   full_prompt = expand_macros(full_prompt)
 
   return full_prompt
