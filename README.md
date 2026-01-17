@@ -1,6 +1,7 @@
 # cctools
 
-Neovim plugin and CLI tools for Claude Code.
+Neovim plugin and CLI tools for Claude Code. The tools and the plugin assume
+that there's a **single Claude Code instance running within the tmux session**.
 
 ## CLI
 
