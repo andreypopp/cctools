@@ -4,7 +4,15 @@ vim.g.loaded_cctools = true
 local cctools = require("cctools")
 
 vim.api.nvim_create_user_command("CCSend", function(opts)
-  cctools.send(opts.args, { range = opts.range })
+  if opts.args == "" then
+    vim.ui.input({ prompt = "CCSend: " }, function(input)
+      if input and input ~= "" then
+        cctools.send(input, { range = opts.range })
+      end
+    end)
+  else
+    cctools.send(opts.args, { range = opts.range })
+  end
 end, {
   nargs = "*",
   range = true,
@@ -12,7 +20,15 @@ end, {
 })
 
 vim.api.nvim_create_user_command("CCAdd", function(opts)
-  cctools.add(opts.args, { range = opts.range })
+  if opts.args == "" then
+    vim.ui.input({ prompt = "CCAdd: " }, function(input)
+      if input and input ~= "" then
+        cctools.add(input, { range = opts.range })
+      end
+    end)
+  else
+    cctools.add(opts.args, { range = opts.range })
+  end
 end, {
   nargs = "*",
   range = true,
