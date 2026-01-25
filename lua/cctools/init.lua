@@ -149,21 +149,18 @@ local function get_ccsend_path()
   return plugin_dir .. "/bin/ccsend"
 end
 
-local function get_visual_selection()
-  local _, start_line, start_col = unpack(vim.fn.getpos("'<"))
-  local _, end_line, end_col = unpack(vim.fn.getpos("'>"))
-
-  local lines = vim.fn.getline(start_line, end_line)
+local function get_visual_selection(range)
+  local lines = vim.fn.getline(range.start_line, range.end_line)
   if #lines == 0 then return nil end
 
   if #lines == 1 then
-    lines[1] = lines[1]:sub(start_col, end_col)
+    lines[1] = lines[1]:sub(range.start_col, range.end_col)
   else
-    lines[1] = lines[1]:sub(start_col)
-    lines[#lines] = lines[#lines]:sub(1, end_col)
+    lines[1] = lines[1]:sub(range.start_col)
+    lines[#lines] = lines[#lines]:sub(1, range.end_col)
   end
 
-  local location = vim.fn.expand("%:.") .. ":" .. start_line .. "-" .. end_line
+  local location = vim.fn.expand("%:.") .. ":" .. range.start_line .. "-" .. range.end_line
   return table.concat(lines, "\n"), location
 end
 
@@ -221,8 +218,8 @@ end
 local function build_prompt(prompt, range)
   local full_prompt = prompt or ""
 
-  if range and range > 0 then
-    local selection, location = get_visual_selection()
+  if range then
+    local selection, location = get_visual_selection(range)
     if selection and selection ~= "" then
       full_prompt = full_prompt .. "\n\n" .. location .. ":\n```\n" .. selection .. "\n```"
     end

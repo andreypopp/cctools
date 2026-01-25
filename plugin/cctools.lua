@@ -3,15 +3,28 @@ vim.g.loaded_cctools = true
 
 local cctools = require("cctools")
 
+local function get_range(range)
+  if range == 0 then return nil end
+  local _, start_line, start_col = unpack(vim.fn.getpos("'<"))
+  local _, end_line, end_col = unpack(vim.fn.getpos("'>"))
+  return {
+    start_line = start_line,
+    start_col = start_col,
+    end_line = end_line,
+    end_col = end_col,
+  }
+end
+
 vim.api.nvim_create_user_command("CCSend", function(opts)
+  local range = get_range(opts.range)
   if opts.args == "" then
     vim.ui.input({ prompt = "CCSend: " }, function(input)
       if input and input ~= "" then
-        cctools.send(input, { range = opts.range })
+        cctools.send(input, {range=range})
       end
     end)
   else
-    cctools.send(opts.args, { range = opts.range })
+    cctools.send(opts.args, {range=range})
   end
 end, {
   nargs = "*",
@@ -20,14 +33,15 @@ end, {
 })
 
 vim.api.nvim_create_user_command("CCAdd", function(opts)
+  local range = get_range(opts.range)
   if opts.args == "" then
     vim.ui.input({ prompt = "CCAdd: " }, function(input)
       if input and input ~= "" then
-        cctools.add(input, { range = opts.range })
+        cctools.add(input, {range=range})
       end
     end)
   else
-    cctools.add(opts.args, { range = opts.range })
+    cctools.add(opts.args, {range=range})
   end
 end, {
   nargs = "*",
@@ -36,7 +50,8 @@ end, {
 })
 
 vim.api.nvim_create_user_command("CC", function(opts)
-  cctools.cc(opts.args, { range = opts.range })
+  local range = get_range(opts.range)
+  cctools.cc(opts.args, {range=range})
 end, {
   nargs = "*",
   range = true,
